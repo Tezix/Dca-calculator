@@ -58,7 +58,7 @@ button:hover {
 }
 
 .clear-button:hover{
-  background-color: #f3495a;
+  background-color: #e73c4d;
 }
 
 .results {
@@ -92,6 +92,7 @@ th, td {
 
 .button-row {
   display: flex;
+  flex-direction: row-reverse;
   justify-content: space-between;
   margin-bottom: 10px;
 }
@@ -110,11 +111,20 @@ th, td {
 }
 
 .position-button.long {
+  background-color: #3ab156;
+  color: white;
+}
+.position-button.long:hover {
   background-color: #28a745;
   color: white;
 }
 
 .position-button.short {
+  background-color: #e73c4d;
+  color: white;
+}
+
+.position-button.short:hover {
   background-color: #dc3545;
   color: white;
 }
