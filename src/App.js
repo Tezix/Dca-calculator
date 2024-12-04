@@ -120,14 +120,12 @@ function App() {
     let totalQuantity = 0; // Total quantity purchased
     for (let i = 0; i < buys; i++) {
       const price = firstPrice + priceInterval * i;
-      const amountInvested = (investment * (percentagesArray[i] / 100)).toFixed(
-        2
-      );
+      const amountInvested = (investment * (percentagesArray[i] / 100)).toFixed(2);
       const quantity = amountInvested / price;
       totalQuantity += quantity;
-
+    
       limitOrders.push({
-        price: price.toFixed(2),
+        price: price.toFixed(4), // Changed to 4 decimal places
         amountInvested: amountInvested,
         percentage: percentagesArray[i],
         quantity: quantity,
@@ -135,7 +133,7 @@ function App() {
     }
 
     // Calculate average entry price
-    const averagePrice = (investment / totalQuantity).toFixed(2);
+    const averagePrice = (investment / totalQuantity).toFixed(4);
 
     // Calculate the required Leverage using average price
     let priceDifference;
