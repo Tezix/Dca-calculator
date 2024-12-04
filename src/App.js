@@ -7,9 +7,9 @@ function App() {
     firstBuyPrice: '',
     lastBuyPrice: '',
     stopLossPrice: '',
-    numberOfPositions: 4, // Default to 4
-    totalBuys: 3, // Default to 3
-    buyPercentages: '40,30,30', // Default percentages
+    numberOfPositions: 3, // Default to 4
+    totalBuys: 4, // Default to 3
+    buyPercentages: '40,27,17,16', // Default percentages
   });
 
   const [results, setResults] = useState(null);
