@@ -15,11 +15,20 @@ function App() {
 
   const [results, setResults] = useState(null);
 
-  // New state variable to control the visibility of optional fields
+  // State variable to control the visibility of optional fields
   const [showOptionalFields, setShowOptionalFields] = useState(false);
+
+  // New state variable to track long or short position
+  const [isLong, setIsLong] = useState(true); // true for long, false for short
 
   const handleChange = (e) => {
     setInputs({ ...inputs, [e.target.name]: e.target.value });
+  };
+
+  const togglePosition = () => {
+    setIsLong(!isLong);
+    // Optionally, clear the results when position type changes
+    setResults(null);
   };
 
   const calculateResults = () => {
@@ -60,8 +69,15 @@ function App() {
       return;
     }
 
-    if (firstPrice <= stopLoss) {
-      alert('Stop Loss Price must be less than the First Buy Price.');
+    // For long positions, stopLoss should be less than firstPrice
+    // For short positions, stopLoss should be greater than firstPrice
+    if (isLong && firstPrice <= stopLoss) {
+      alert('Stop Loss Price must be less than the First Buy Price for long positions.');
+      return;
+    }
+
+    if (!isLong && firstPrice >= stopLoss) {
+      alert('Stop Loss Price must be greater than the First Buy Price for short positions.');
       return;
     }
 
@@ -123,10 +139,19 @@ function App() {
     const averagePrice = (investment / totalQuantity).toFixed(2);
 
     // Calculate the required Leverage using average price
-    const priceDifference = averagePrice - stopLoss;
-    if (priceDifference <= 0) {
-      alert('Stop Loss Price must be less than the Average Entry Price.');
-      return;
+    let priceDifference;
+    if (isLong) {
+      priceDifference = averagePrice - stopLoss;
+      if (priceDifference <= 0) {
+        alert('Stop Loss Price must be less than the Average Entry Price for long positions.');
+        return;
+      }
+    } else {
+      priceDifference = stopLoss - averagePrice;
+      if (priceDifference <= 0) {
+        alert('Stop Loss Price must be greater than the Average Entry Price for short positions.');
+        return;
+      }
     }
 
     const leverageValue = (
@@ -145,6 +170,7 @@ function App() {
       totalRiskAmount,
       averagePrice,
       riskPercent: riskPercent.toFixed(2),
+      positionType: isLong ? 'Long' : 'Short',
     });
   };
 
@@ -168,14 +194,23 @@ function App() {
 
   return (
     <div className="container">
-      <button
-        type="button"
-        className="clear-button"
-        onClick={handleClearForm}
-      >
-        🔄
-      </button>
-      <hr/>
+      <div className="button-row">
+        <button
+          type="button"
+          className="half-button clear-button"
+          onClick={handleClearForm}
+        >
+          🔄
+        </button>
+        <button
+          type="button"
+          className={`half-button position-button ${isLong ? 'long' : 'short'}`}
+          onClick={togglePosition}
+        >
+          {isLong ? 'Long' : 'Short'}
+        </button>
+      </div>
+      <hr />
       <form onSubmit={handleSubmit}>
         {/* Required Fields */}
         <label>
@@ -195,7 +230,6 @@ function App() {
             value={inputs.firstBuyPrice}
             onChange={handleChange}
             placeholder="Entry"
-
             required
           />
         </label>
@@ -247,6 +281,9 @@ function App() {
             </p>
 
             <h2>Info</h2>
+            <p>
+              <strong>Position Type:</strong> {results.positionType}
+            </p>
             <p>
               <strong>Average Entry Price:</strong> ${results.averagePrice}
             </p>

@@ -90,3 +90,70 @@ th, td {
 .optional-fields label {
   margin-bottom: 10px;
 }
+
+
+/* src/App.css */
+
+/* Existing styles... */
+
+/* Container for the buttons */
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* Half-size buttons */
+.half-button {
+  width: 49%;
+  padding: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+}
+
+/* Clear button styles */
+.clear-button {
+  background-color: #f0f0f0;
+  color: black;
+}
+
+/* Position toggle button styles */
+.position-button.long {
+  background-color: #28a745; /* Green */
+  color: white;
+}
+
+.position-button.short {
+  background-color: #dc3545; /* Red */
+  color: white;
+}
+
+/* Toggle button for optional fields */
+.toggle-button {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #007bff;
+  color: white;
+  width: 100%;
+  font-size: 16px;
+  border: none;
+  border-radius: 4px;
+}
+
+/* Optional fields container */
+.optional-fields {
+  margin-top: 10px;
+}
+
+/* Adjust form labels and inputs */
+form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+form input {
+  width: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
