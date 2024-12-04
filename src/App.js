@@ -8,7 +8,6 @@ function App() {
     firstBuyPrice: '',
     lastBuyPrice: '',
     stopLossPrice: '',
-    riskPercentage: 5, // Default to 5%
     numberOfPositions: 4, // Default to 4
     totalBuys: 3, // Default to 3
     buyPercentages: '40,30,30', // Default percentages
@@ -29,7 +28,6 @@ function App() {
       firstBuyPrice,
       lastBuyPrice,
       stopLossPrice,
-      riskPercentage,
       numberOfPositions,
       totalBuys,
       buyPercentages,
@@ -39,8 +37,8 @@ function App() {
     const available = parseFloat(availableAmount);
     const positions = parseInt(numberOfPositions);
     const investment = available / positions; // Investment amount per position
-    const riskPercent = parseFloat(riskPercentage);
-    const riskAmount = (riskPercent / 100) * available; // Risk per position is 5% of total balance
+    const riskPercent = 100 / positions; // Risk percentage per position
+    const riskAmount = (riskPercent / 100) * available; // Risk amount per position
     const firstPrice = parseFloat(firstBuyPrice);
     const stopLoss = parseFloat(stopLossPrice);
     let lastPrice = parseFloat(lastBuyPrice);
@@ -51,7 +49,6 @@ function App() {
       isNaN(available) ||
       isNaN(firstPrice) ||
       isNaN(stopLoss) ||
-      isNaN(riskPercent) ||
       isNaN(positions)
     ) {
       alert('Please fill in all required fields with valid numbers.');
@@ -98,12 +95,6 @@ function App() {
       return;
     }
 
-    // Calculate the required Leverage
-    const leverageValue = (
-      (riskAmount / investment) *
-      (firstPrice / (firstPrice - stopLoss))
-    ).toFixed(2);
-
     // Calculate limit order prices and amounts
     let priceInterval = 0;
     if (buys > 1) {
@@ -111,15 +102,37 @@ function App() {
     }
 
     const limitOrders = [];
+    let totalQuantity = 0; // Total quantity purchased
     for (let i = 0; i < buys; i++) {
       const price = firstPrice + priceInterval * i;
-      const amountInvested = ((investment * percentagesArray[i]) / 100).toFixed(2);
+      const amountInvested = (investment * (percentagesArray[i] / 100)).toFixed(
+        2
+      );
+      const quantity = amountInvested / price;
+      totalQuantity += quantity;
+
       limitOrders.push({
         price: price.toFixed(2),
         amountInvested: amountInvested,
         percentage: percentagesArray[i],
+        quantity: quantity,
       });
     }
+
+    // Calculate average entry price
+    const averagePrice = (investment / totalQuantity).toFixed(2);
+
+    // Calculate the required Leverage using average price
+    const priceDifference = averagePrice - stopLoss;
+    if (priceDifference <= 0) {
+      alert('Stop Loss Price must be less than the Average Entry Price.');
+      return;
+    }
+
+    const leverageValue = (
+      (riskAmount / investment) *
+      (averagePrice / priceDifference)
+    ).toFixed(2);
 
     // Total potential risk across all positions
     const totalRiskAmount = (riskAmount * positions).toFixed(2);
@@ -130,6 +143,8 @@ function App() {
       investmentAmount: investment.toFixed(2),
       riskAmount: riskAmount.toFixed(2),
       totalRiskAmount,
+      averagePrice,
+      riskPercent: riskPercent.toFixed(2),
     });
   };
 
@@ -144,9 +159,8 @@ function App() {
       firstBuyPrice: '',
       lastBuyPrice: '',
       stopLossPrice: '',
-      riskPercentage: 5, // Default to 5%
       numberOfPositions: 4, // Default to 4
-      totalBuys: 3,        // Default to 3
+      totalBuys: 3, // Default to 3
       buyPercentages: '40,30,30', // Default percentages
     });
     setResults(null); // Clear the results
@@ -154,95 +168,102 @@ function App() {
 
   return (
     <div className="container">
-      <button type="button" className='clear-button' onClick={handleClearForm}>Clear Form</button>
-      <h1>DCA Investment Calculator</h1>
+      <button
+        type="button"
+        className="clear-button"
+        onClick={handleClearForm}
+      >
+        🔄
+      </button>
+      <hr/>
       <form onSubmit={handleSubmit}>
         {/* Required Fields */}
         <label>
-          Available Amount:
           <input
             type="number"
             name="availableAmount"
             value={inputs.availableAmount}
             onChange={handleChange}
             required
+            placeholder="Available Amount"
           />
         </label>
         <label>
-          First Buy Price:
           <input
             type="number"
             name="firstBuyPrice"
             value={inputs.firstBuyPrice}
             onChange={handleChange}
+            placeholder="Entry"
+
             required
           />
         </label>
         <label>
-          Last Buy Price:
           <input
             type="number"
             name="lastBuyPrice"
             value={inputs.lastBuyPrice}
             onChange={handleChange}
-            placeholder="Optional: Leave empty to use only First Buy Price"
+            placeholder="Last Buy: Leave empty to use Entry"
           />
         </label>
         <label>
-          Stop Loss Price:
           <input
             type="number"
             name="stopLossPrice"
             value={inputs.stopLossPrice}
             onChange={handleChange}
             required
+            placeholder="Stop Loss"
           />
         </label>
 
-
         <button type="submit">Calculate</button>
         {/* Display Results */}
-      {results && (
-        <div className="results">
-          
-
-          <h3>Limit Orders:</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Price</th>
-                <th>Amount to Invest</th>
-                <th>Percentage of Investment</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.limitOrders.map((order, index) => (
-                <tr key={index}>
-                  <td>${order.price}</td>
-                  <td>${order.amountInvested}</td>
-                  <td>{order.percentage}%</td>
+        {results && (
+          <div className="results">
+            <h3>Limit Orders:</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Price</th>
+                  <th>Amount to Invest</th>
+                  <th>Percentage of Investment</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          <p>
-            <strong>Leverage:</strong> {results.leverage}
-          </p>
+              </thead>
+              <tbody>
+                {results.limitOrders.map((order, index) => (
+                  <tr key={index}>
+                    <td>${order.price}</td>
+                    <td>${order.amountInvested}</td>
+                    <td>{order.percentage}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p>
+              <strong>Leverage:</strong> {results.leverage}
+            </p>
 
-          <h2>Info</h2>
-          <p>
-            <strong>Investment Amount (per position):</strong> ${results.investmentAmount}
-          </p>
-          <p>
-            <strong>Risk Amount (per position):</strong> ${results.riskAmount}
-          </p>
-          <p>
-            <strong>Total Risk Amount (all positions):</strong> ${results.totalRiskAmount}
-          </p>
-          
-        </div>
-      )}
-        <hr/>
+            <h2>Info</h2>
+            <p>
+              <strong>Average Entry Price:</strong> ${results.averagePrice}
+            </p>
+            <p>
+              <strong>Investment Amount (per position):</strong> $
+              {results.investmentAmount}
+            </p>
+            <p>
+              <strong>Risk Percentage (per position):</strong>{' '}
+              {results.riskPercent}%
+            </p>
+            <p>
+              <strong>Risk Amount (per position):</strong> ${results.riskAmount}
+            </p>
+          </div>
+        )}
+        <hr />
 
         {/* Toggle Button for Optional Fields */}
         <button
@@ -278,15 +299,6 @@ function App() {
               />
             </label>
             <label>
-              Risk Percentage (%):
-              <input
-                type="number"
-                name="riskPercentage"
-                value={inputs.riskPercentage}
-                onChange={handleChange}
-              />
-            </label>
-            <label>
               Buy Percentages (comma-separated):
               <input
                 type="text"
@@ -298,8 +310,6 @@ function App() {
           </div>
         )}
       </form>
-
-      
     </div>
   );
 }
