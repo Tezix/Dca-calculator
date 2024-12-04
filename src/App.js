@@ -182,7 +182,7 @@ function App() {
       firstBuyPrice: '',
       lastBuyPrice: '',
       stopLossPrice: '',
-      numberOfPositions: 4, // Default to 4
+      numberOfPositions: 3, // Default to 4
       totalBuys: 3, // Default to 3
       buyPercentages: '40,30,30', // Default percentages
     });
@@ -312,7 +312,7 @@ function App() {
         {showOptionalFields && (
           <div className="optional-fields">
             <label>
-              Number of Positions:
+              Max Simultaneous Positions:
               <input
                 type="number"
                 name="numberOfPositions"
@@ -323,7 +323,7 @@ function App() {
               />
             </label>
             <label>
-              Total Buys:
+              Total Entries:
               <input
                 type="number"
                 name="totalBuys"
